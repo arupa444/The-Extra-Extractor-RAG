@@ -2,7 +2,7 @@ from docling.document_converter import DocumentConverter
 from docling.datamodel.base_models import InputFormat
 from playwright.sync_api import sync_playwright
 
-source = "https://arxiv.org/pdf/2408.09869"
+source = "https://the-little-journal.com/"
 
 
 def get_dynamic_html(url):
@@ -21,7 +21,7 @@ rendered_html = get_dynamic_html(source)
 
 # 2. Convert the string using Docling
 converter = DocumentConverter()
-# We use 'convert_string' instead of 'convert' since we have the HTML as text now
+
 result = converter.convert_string(rendered_html, InputFormat.HTML)
 
 print(result.document.export_to_markdown())
