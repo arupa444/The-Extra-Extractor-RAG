@@ -6,15 +6,11 @@ source = "https://arxiv.org/pdf/2408.09869"
 
 
 def get_dynamic_html(url):
-    """Fetches the fully rendered HTML using a headless browser."""
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(url)
-
-        # Wait for the page to load (you can adjust this or wait for a specific element)
-        page.wait_for_timeout(5000)  # waiting 5 seconds for JS to render
-
+        page.wait_for_timeout(5000)
         html_content = page.content()
         browser.close()
         return html_content
