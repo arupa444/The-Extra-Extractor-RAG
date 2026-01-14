@@ -5,3 +5,8 @@ from pydantic import EmailStr
 from typing import Annotated, Literal, Optional, List, Dict
 from pydantic import BaseModel, Field, field_validator, computed_field, AnyUrl, EmailStr
 import requests
+from docling.document_converter import DocumentConverter
+from docling.datamodel.base_models import InputFormat
+from playwright.sync_api import sync_playwright
+
+
