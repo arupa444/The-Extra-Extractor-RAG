@@ -4,6 +4,9 @@ playwright
 # use this commend to install the playwright(just to render the website)
 # playwright install
 
+
+
+#for fastapi
 fastapi
 uvicorn
 pydantic
@@ -12,3 +15,14 @@ pydantic[email]
 python-multipart
 
 python-dotenv
+
+
+
+#for rag
+
+langchain
+langchain-google-genai
+rich
+python-dotenv
+faiss-cpu
+numpy
