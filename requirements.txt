@@ -1,2 +1,4 @@
 docling
 playwright
+
+# playwright install
