@@ -1,12 +1,12 @@
 from docling.document_converter import DocumentConverter
 from docling.datamodel.base_models import InputFormat
 import os
-from helper_file import HelperFile
+from utils.helper_file import HelperFile
 
 
 
 class DataExtrationAndRenderingService:
-    os.makedirs("images", exist_ok=True)
+    os.makedirs("rawDataDir", exist_ok=True)
 
     @staticmethod
     def anyThingButJSOrSPA(source: str) -> str:
