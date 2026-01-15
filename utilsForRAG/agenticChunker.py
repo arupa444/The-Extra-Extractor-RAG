@@ -216,7 +216,7 @@ class AgenticChunker:
             "current_title": chunk['title']
         })
 
-    def load_chunks(self, path="storeDB/chunksArupa1.json"):
+    def load_chunks(self, path: str):
         """
         Loads previously saved chunks from the JSON file.
         """

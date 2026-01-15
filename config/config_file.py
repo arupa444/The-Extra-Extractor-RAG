@@ -28,26 +28,35 @@ class Config:
             print(f"Error saving file: {e}")
 
     @staticmethod
-    def save_results(savedLocation: str, propositions: List[str], chunks: dict, folder_name: str = "vectorStoreDB"):
+    def save_results(savedLocation: str, propositions: list, chunks: dict, memory_index,
+                     folder_name: str = "vectorStoreDB"):
         extension = ".json"
 
+        savedLocation = savedLocation.split(".")[0]
+
+        # File Names
         fileNameForPropositions = f"Citta_Propositions_{savedLocation}{extension}"
         fileNameForChunks = f"Citta_Chunks_{savedLocation}{extension}"
 
-
+        # Create Folder
         os.makedirs(folder_name, exist_ok=True)
 
-        # Save Propositions to JSON
+        # 1. Save Propositions
         prop_path = os.path.join(folder_name, fileNameForPropositions)
         with open(prop_path, "w", encoding="utf-8") as f:
             json.dump(propositions, f, indent=4, ensure_ascii=False)
-        print(f"Saved propositions to: [underline]{prop_path}[/underline]")
 
-        # 3. Save Chunks to JSON
+        # 2. Save Chunks (Text Data)
         chunk_path = os.path.join(folder_name, fileNameForChunks)
         with open(chunk_path, "w", encoding="utf-8") as f:
             json.dump(chunks, f, indent=4, ensure_ascii=False)
-        print(f"Saved chunks to: [underline]{chunk_path}[/underline]")
+
+        # 3. Save FAISS Index & IDs (The new part)
+        # Using the same savedLocation ID for the filename
+        index_prefix = f"Citta_Index_{savedLocation}"
+        memory_index.save_local(folder_name, index_prefix)
+
+        print(f"[SUCCESS] All data saved in {folder_name} with ID: {savedLocation}")
 
 
     @staticmethod
