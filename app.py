@@ -155,7 +155,7 @@ async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...),
         subDir: str = ""):
     try:
         markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
-        config.storeMDContent(markdown_content)
+        config.storeMDContent(markdown_content, subDir)
         return {"markdown_content": markdown_content}
     except Exception as e:
         return {"error": str(e)}
@@ -204,7 +204,7 @@ async def OCR_On_JS_SPA_Website(webLink: str = Form(...),
     try:
         print(webLink)
         markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
-        config.storeMDContent(markdown_content)
+        config.storeMDContent(markdown_content, subDir)
         return {"markdown_content": markdown_content}
     except Exception as e:
         return {"error": str(e)}
@@ -266,7 +266,7 @@ async def RAG_On_Single_Upload(file: UploadFile = File(...), query: str = Form(.
     try:
         # 0
         markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(tmp_path)
-        savedLocation = config.storeMDContent(markdown_content)
+        savedLocation = config.storeMDContent(markdown_content, subDir)
         ac = agenticChunker.AgenticChunker()
 
         # 1. Raw Text Input
@@ -393,7 +393,7 @@ async def RAG_On_nonJS_nonSPA_Website(webLink: str = Form(...),
         subDir: str = ""):
     try:
         markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
-        config.storeMDContent(markdown_content)
+        config.storeMDContent(markdown_content, subDir)
         return {"markdown_content": markdown_content}
     except Exception as e:
         return {"error": str(e)}
@@ -442,7 +442,7 @@ async def RAG_On_JS_SPA_Website(webLink: str = Form(...),
     try:
         print(webLink)
         markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
-        config.storeMDContent(markdown_content)
+        config.storeMDContent(markdown_content, subDir)
         return {"markdown_content": markdown_content}
     except Exception as e:
         return {"error": str(e)}

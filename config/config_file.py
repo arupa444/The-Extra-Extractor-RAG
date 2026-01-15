@@ -16,6 +16,7 @@ class Config:
     @staticmethod
     def storeMDContent(rawData: str, subDir: str, target_dir: str = "rawDataDir") -> str | None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        target_dir = f"{target_dir}/{subDir}"
         extension = ".md"
         filename = f"Citta_{timestamp}{extension}"
         full_path = os.path.join(target_dir, filename)
@@ -34,8 +35,7 @@ class Config:
         extension = ".json"
 
         savedLocation = savedLocation.split(".")[0]
-
-        folder_name = f"{folder_name}/{savedLocation}"
+        folder_name = f"{folder_name}/{subDir}"
 
         # File Names
         fileNameForPropositions = f"Citta_Propositions_{savedLocation}{extension}"
@@ -65,6 +65,7 @@ class Config:
     @staticmethod
     def jsonStoreForMultiDoc(rawData: list, subDir: str, target_dir: str = "rawDataDir") -> str | None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        target_dir = f"{target_dir}/{subDir}"
         extension = ".json"
         filename = f"Citta_{timestamp}{extension}"
         full_path = os.path.join(target_dir, filename)
