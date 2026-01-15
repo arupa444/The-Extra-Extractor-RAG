@@ -92,7 +92,7 @@ class ChatRequest(BaseModel):
 # OCR Part....
 
 @app.post("/OCR_On_Single_Upload", summary="You can upload any kind of source file and get the OCR output....")
-async def OCR_On_Single_Upload(file: UploadFile = File(...)):
+async def OCR_On_Single_Upload(file: UploadFile = File(...),subDir: str = ""):
 
     file_suffix = Path(file.filename).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
@@ -101,7 +101,7 @@ async def OCR_On_Single_Upload(file: UploadFile = File(...)):
 
     try:
         markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(tmp_path)
-        savedLocation = config.storeMDContent(markdown_content)
+        savedLocation = config.storeMDContent(markdown_content, subDir)
         return {"markdown_content": markdown_content, "SavedLocation": savedLocation}
     except Exception as e:
         return {"error": str(e)}
@@ -112,7 +112,8 @@ async def OCR_On_Single_Upload(file: UploadFile = File(...)):
 
 @app.post("/OCR_On_Folder_Or_Multiple_file_Uploads", summary="Upload a folder or select multiple files and collectively perform OCR and save all the results in a json......")
 async def OCR_On_Folder_Or_Multiple_file_Upload(
-        files: List[UploadFile] = File(...)
+        files: List[UploadFile] = File(...),
+        subDir: str = ""
 ):
     results = []
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -150,7 +151,8 @@ async def OCR_On_Folder_Or_Multiple_file_Upload(
 
 
 @app.post("/OCR_On_nonJS_nonSPA_Website", summary="OCR on Non js and Non SPA website")
-async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
+async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...),
+        subDir: str = ""):
     try:
         markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
         config.storeMDContent(markdown_content)
@@ -161,7 +163,8 @@ async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
 
 @app.post("/Multiple_OCRs_On_nonJS_nonSPA_Website", summary="Multiple OCRs on Non js and Non SPA website")
 async def Multiple_OCRs_On_nonJS_nonSPA_Website(
-        webLinks: List[str] = Form(...)
+        webLinks: List[str] = Form(...),
+        subDir: str = ""
 ):
 
     cleaned_links = []
@@ -196,7 +199,8 @@ async def Multiple_OCRs_On_nonJS_nonSPA_Website(
 
 
 @app.post("/OCR_On_JS_SPA_Website", summary="OCR on JS SPA website")
-async def OCR_On_JS_SPA_Website(webLink: str = Form(...)):
+async def OCR_On_JS_SPA_Website(webLink: str = Form(...),
+        subDir: str = ""):
     try:
         print(webLink)
         markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
@@ -209,7 +213,8 @@ async def OCR_On_JS_SPA_Website(webLink: str = Form(...)):
 
 @app.post("/Multiple_OCRs_On_JS_SPA_Websites", summary="Multiple OCRs on JS SPA website")
 async def Multiple_OCRs_On_JS_SPA_Websites(
-        webLinks: List[str] = Form(...)
+        webLinks: List[str] = Form(...),
+        subDir: str = ""
 ):
 
     cleaned_links = []
@@ -250,7 +255,8 @@ async def Multiple_OCRs_On_JS_SPA_Websites(
 # RAG Part....
 
 @app.post("/RAG_On_Single_Upload", summary="You can upload any kind of source file and get the RAG output....")
-async def RAG_On_Single_Upload(file: UploadFile = File(...), query: str = Form(...)):
+async def RAG_On_Single_Upload(file: UploadFile = File(...), query: str = Form(...),
+        subDir: str = ""):
 
     file_suffix = Path(file.filename).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
@@ -312,6 +318,7 @@ async def RAG_On_Single_Upload(file: UploadFile = File(...), query: str = Form(.
 async def RAG_On_Folder_Or_Multiple_file_Uploads(
         files: List[UploadFile] = File(...),
         query: str = Form(...),
+        subDir: str = ""
 ):
     results = []
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -382,7 +389,8 @@ async def RAG_On_Folder_Or_Multiple_file_Uploads(
 
 
 @app.post("/RAG_On_nonJS_nonSPA_Website", summary="RAG on Non js and Non SPA website")
-async def RAG_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
+async def RAG_On_nonJS_nonSPA_Website(webLink: str = Form(...),
+        subDir: str = ""):
     try:
         markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
         config.storeMDContent(markdown_content)
@@ -393,7 +401,8 @@ async def RAG_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
 
 @app.post("/RAG_On_Multiple_nonJS_nonSPA_Website", summary="RAG on Multiple Non js and Non SPA website")
 async def RAG_On_Multiple_nonJS_nonSPA_Website(
-        webLinks: List[str] = Form(...)
+        webLinks: List[str] = Form(...),
+        subDir: str = ""
 ):
 
     cleaned_links = []
@@ -428,7 +437,8 @@ async def RAG_On_Multiple_nonJS_nonSPA_Website(
 
 
 @app.post("/RAG_On_JS_SPA_Website", summary="RAG on JS SPA website")
-async def RAG_On_JS_SPA_Website(webLink: str = Form(...)):
+async def RAG_On_JS_SPA_Website(webLink: str = Form(...),
+        subDir: str = ""):
     try:
         print(webLink)
         markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
@@ -441,7 +451,8 @@ async def RAG_On_JS_SPA_Website(webLink: str = Form(...)):
 
 @app.post("/RAG_On_Multiple_JS_SPA_Websites", summary="RAG on Multiple JS SPA website")
 async def RAG_On_Multiple_JS_SPA_Websites(
-        webLinks: List[str] = Form(...)
+        webLinks: List[str] = Form(...),
+        subDir: str = ""
 ):
 
     cleaned_links = []

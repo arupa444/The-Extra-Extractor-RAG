@@ -14,7 +14,7 @@ class Config:
 
 
     @staticmethod
-    def storeMDContent(rawData: str, target_dir: str = "rawDataDir") -> str | None:
+    def storeMDContent(rawData: str, subDir: str, target_dir: str = "rawDataDir") -> str | None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         extension = ".md"
         filename = f"Citta_{timestamp}{extension}"
@@ -28,7 +28,7 @@ class Config:
             print(f"Error saving file: {e}")
 
     @staticmethod
-    def save_results(savedLocation: str, propositions: list, chunks: dict, memory_index,
+    def save_results(savedLocation: str, propositions: list, chunks: dict, memory_index, subDir: str,
                      folder_name: str = "vectorStoreDB"):
 
         extension = ".json"
@@ -63,7 +63,7 @@ class Config:
 
 
     @staticmethod
-    def jsonStoreForMultiDoc(rawData: list, target_dir: str = "rawDataDir") -> str | None:
+    def jsonStoreForMultiDoc(rawData: list, subDir: str, target_dir: str = "rawDataDir") -> str | None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         extension = ".json"
         filename = f"Citta_{timestamp}{extension}"
