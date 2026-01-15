@@ -186,10 +186,11 @@ async def Multiple_OCRs_On_nonJS_nonSPA_Website(
 
 
 
-@app.post("/OCR_On_JS_SPA_Website", summary="You can upload any kind of source file")
+@app.post("/OCR_On_JS_SPA_Website", summary="OCR on JS SPA website")
 async def OCR_On_JS_SPA_Website(webLink: str = Form(...)):
     try:
-        markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
+        print(webLink)
+        markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
         config.storeMDContent(markdown_content)
         return {"markdown_content": markdown_content}
     except Exception as e:
@@ -197,7 +198,7 @@ async def OCR_On_JS_SPA_Website(webLink: str = Form(...)):
 
 
 
-@app.post("/Multiple_OCRs_On_JS_SPA_Websites", summary="Upload a folder (select multiple files)")
+@app.post("/Multiple_OCRs_On_JS_SPA_Websites", summary="Multiple OCRs on JS SPA website")
 async def Multiple_OCRs_On_JS_SPA_Websites(
         webLinks: List[str] = Form(...)
 ):
@@ -207,7 +208,7 @@ async def Multiple_OCRs_On_JS_SPA_Websites(
         for webLink in webLinks:
             web_result = {}
             try:
-                markdown_content = DataExtAndRenderingService.websiteDataExtrationJs(webLink)
+                markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
                 web_result = {
                     "webName": webLink,
                     "markdownContent": markdown_content,

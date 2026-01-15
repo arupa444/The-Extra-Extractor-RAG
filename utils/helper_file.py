@@ -1,14 +1,13 @@
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 
 class HelperFile:
-
     @staticmethod
-    def get_dynamic_html(url: str):
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.goto(url)
-            page.wait_for_timeout(15000)
-            html_content = page.content()
-            browser.close()
+    async def get_dynamic_html(url: str):
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.goto(url)
+            await page.wait_for_timeout(15000)
+            html_content = await page.content()
+            await browser.close()
             return html_content
