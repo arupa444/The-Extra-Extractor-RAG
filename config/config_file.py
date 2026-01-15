@@ -14,7 +14,7 @@ class Config:
 
 
     @staticmethod
-    def storeMDContent(rawData: str, target_dir: str = "rawDataDir") -> str | None:
+    def storeMDContent(rawData: str | list, target_dir: str = "rawDataDir") -> str | None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         extension = ".md"
         filename = f"Citta_{timestamp}{extension}"

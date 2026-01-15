@@ -118,8 +118,7 @@ async def folder_upload(
                 # We reuse your existing service logic
                 markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(file_path)
 
-                # 4. Store/Save logic
-                config.storeMDContent(markdown_content)
+
 
                 file_result = {
                     "filename": file.filename,
@@ -141,4 +140,6 @@ async def folder_upload(
             await file.close()
 
     # The TemporaryDirectory is automatically deleted here when we exit the 'with' block
+    # 4. Store/Save logic
+    config.storeMDContent(results)
     return {"results": results}
