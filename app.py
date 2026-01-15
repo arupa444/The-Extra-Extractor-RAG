@@ -127,15 +127,6 @@ async def OCR_On_Folder_Or_Multiple_file_Upload(
     return {"results": results}
 
 
-
-
-
-
-
-
-
-
-
 @app.post("/OCR_On_nonJS_nonSPA_Website", summary="OCR on Non js and Non SPA website")
 async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
     try:
@@ -150,7 +141,6 @@ async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
 async def Multiple_OCRs_On_nonJS_nonSPA_Website(
         webLinks: List[str] = Form(...)
 ):
-
 
     cleaned_links = []
     for entry in webLinks:
@@ -181,20 +171,6 @@ async def Multiple_OCRs_On_nonJS_nonSPA_Website(
 
     config.jsonStoreForMultiDoc(results)
     return {"results": results}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @app.post("/OCR_On_JS_SPA_Website", summary="OCR on JS SPA website")
