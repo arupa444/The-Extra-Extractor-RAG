@@ -136,59 +136,40 @@ async def OCR_On_Folder_Or_Multiple_file_Upload(
 
 
 @app.post("/OCR_On_nonJS_nonSPA_Website", summary="You can upload any kind of source file")
-async def OCR_On_nonJS_nonSPA_Website(file: UploadFile = File(...)):
-
-    file_suffix = Path(file.filename).suffix
-    with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
-        shutil.copyfileobj(file.file, tmp_file)
-        tmp_path = tmp_file.name
-
+async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
     try:
-        markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(tmp_path)
+        markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
         config.storeMDContent(markdown_content)
         return {"markdown_content": markdown_content}
     except Exception as e:
         return {"error": str(e)}
-    finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
 
 
 @app.post("/Multiple_OCRs_On_nonJS_nonSPA_Website", summary="Upload a folder (select multiple files)")
 async def Multiple_OCRs_On_nonJS_nonSPA_Website(
-        files: List[UploadFile] = File(...)
+        webLinks: List[str] = Form(...)
 ):
     results = []
     with tempfile.TemporaryDirectory() as temp_dir:
 
-        for file in files:
-            file_result = {}
-            file_path = None
-
+        for webLink in webLinks:
+            web_result = {}
             try:
-                safe_filename = Path(file.filename).name
-                file_path = os.path.join(temp_dir, safe_filename)
-                with open(file_path, "wb") as buffer:
-                    shutil.copyfileobj(file.file, buffer)
-                markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(file_path)
-
-
-
-                file_result = {
-                    "filename": file.filename,
-                    "markdown_content": markdown_content,
+                markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
+                web_result = {
+                    "webName": webLink,
+                    "markdownContent": markdown_content,
                     "status": "success",
                 }
 
             except Exception as e:
-                file_result = {
-                    "filename": file.filename,
+                web_result = {
+                    "filename": webLink,
                     "status": "error",
                     "error": str(e)
                 }
 
-            results.append(file_result)
-            await file.close()
+            results.append(web_result)
 
     config.jsonStoreForMultiDoc(results)
     return {"results": results}
@@ -209,60 +190,41 @@ async def Multiple_OCRs_On_nonJS_nonSPA_Website(
 
 
 @app.post("/OCR_On_JS_SPA_Website", summary="You can upload any kind of source file")
-async def OCR_On_JS_SPA_Website(file: UploadFile = File(...)):
-
-    file_suffix = Path(file.filename).suffix
-    with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
-        shutil.copyfileobj(file.file, tmp_file)
-        tmp_path = tmp_file.name
-
+async def OCR_On_JS_SPA_Website(webLink: str = Form(...)):
     try:
-        markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(tmp_path)
+        markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
         config.storeMDContent(markdown_content)
         return {"markdown_content": markdown_content}
     except Exception as e:
         return {"error": str(e)}
-    finally:
-        if os.path.exists(tmp_path):
-            os.remove(tmp_path)
 
 
 
 @app.post("/Multiple_OCRs_On_JS_SPA_Websites", summary="Upload a folder (select multiple files)")
 async def Multiple_OCRs_On_JS_SPA_Websites(
-        files: List[UploadFile] = File(...)
+        webLinks: List[str] = Form(...)
 ):
     results = []
     with tempfile.TemporaryDirectory() as temp_dir:
 
-        for file in files:
-            file_result = {}
-            file_path = None
-
+        for webLink in webLinks:
+            web_result = {}
             try:
-                safe_filename = Path(file.filename).name
-                file_path = os.path.join(temp_dir, safe_filename)
-                with open(file_path, "wb") as buffer:
-                    shutil.copyfileobj(file.file, buffer)
-                markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(file_path)
-
-
-
-                file_result = {
-                    "filename": file.filename,
+                markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
+                web_result = {
+                    "webName": webLink,
+                    "markdownContent": markdown_content,
                     "status": "success",
-                    "markdown_content": markdown_content
                 }
 
             except Exception as e:
-                file_result = {
-                    "filename": file.filename,
+                web_result = {
+                    "filename": webLink,
                     "status": "error",
                     "error": str(e)
                 }
 
-            results.append(file_result)
-            await file.close()
+            results.append(web_result)
 
     config.jsonStoreForMultiDoc(results)
     return {"results": results}
