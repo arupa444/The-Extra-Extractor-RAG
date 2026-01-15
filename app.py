@@ -70,7 +70,7 @@ app = FastAPI(title="Multi Input Rag END-TO-END")
 
 
 @app.post("/OCR_On_Single_Upload", summary="You can upload any kind of source file")
-async def single_upload(file: UploadFile = File(...)):
+async def OCR_On_Single_Upload(file: UploadFile = File(...)):
 
     file_suffix = Path(file.filename).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
@@ -89,7 +89,7 @@ async def single_upload(file: UploadFile = File(...)):
 
 
 @app.post("/OCR_On_Folder_Or_Multiple_file_Upload", summary="Upload a folder (select multiple files)")
-async def folder_upload(
+async def OCR_On_Folder_Or_Multiple_file_Upload(
         files: List[UploadFile] = File(...)
 ):
     results = []
@@ -136,7 +136,7 @@ async def folder_upload(
 
 
 @app.post("/OCR_On_nonJS_nonSPA_Website", summary="You can upload any kind of source file")
-async def single_upload(file: UploadFile = File(...)):
+async def OCR_On_nonJS_nonSPA_Website(file: UploadFile = File(...)):
 
     file_suffix = Path(file.filename).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
@@ -155,7 +155,7 @@ async def single_upload(file: UploadFile = File(...)):
 
 
 @app.post("/Multiple_OCRs_On_nonJS_nonSPA_Website", summary="Upload a folder (select multiple files)")
-async def folder_upload(
+async def Multiple_OCRs_On_nonJS_nonSPA_Website(
         files: List[UploadFile] = File(...)
 ):
     results = []
@@ -208,8 +208,8 @@ async def folder_upload(
 
 
 
-@app.post("/OCR_On_JS_SPA_Websited", summary="You can upload any kind of source file")
-async def single_upload(file: UploadFile = File(...)):
+@app.post("/OCR_On_JS_SPA_Website", summary="You can upload any kind of source file")
+async def OCR_On_JS_SPA_Website(file: UploadFile = File(...)):
 
     file_suffix = Path(file.filename).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
@@ -229,7 +229,7 @@ async def single_upload(file: UploadFile = File(...)):
 
 
 @app.post("/Multiple_OCRs_On_JS_SPA_Websites", summary="Upload a folder (select multiple files)")
-async def folder_upload(
+async def Multiple_OCRs_On_JS_SPA_Websites(
         files: List[UploadFile] = File(...)
 ):
     results = []
