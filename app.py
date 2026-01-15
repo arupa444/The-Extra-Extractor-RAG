@@ -19,6 +19,12 @@ from utilsForRAG import agenticChunker, ragAnswer, DBretrieve, chunkMemoryIndex
 from dotenv import load_dotenv
 
 from pydantic import BaseModel
+
+from fastapi import UploadFile, File, Form
+import shutil
+import tempfile
+import os
+
 from fastapi import HTTPException
 from fastapi.concurrency import run_in_threadpool
 
@@ -433,65 +439,63 @@ async def RAG_On_Multiple_JS_SPA_Websites(
     return {"results": results}
 
 
+@app.post("/RAG_From_Uploaded_Index", summary="Upload .faiss, .json (ids), and .json (chunks) to chat")
+async def rag_from_uploaded_index(
+        query: str = Form(...),
+        file_faiss: UploadFile = File(..., description="The .faiss index file"),
+        file_ids: UploadFile = File(..., description="The _ids.json file"),
+        file_chunks: UploadFile = File(..., description="The _chunks.json file")
+):
+    temp_dir = tempfile.mkdtemp()
 
-@app.post("/Chat_With_Saved_Data", summary="Chat with a previously uploaded/processed file")
-async def chat_with_saved_data(request: ChatRequest):
     try:
+        # 1. Save Uploaded Files to Temp
+        path_faiss = os.path.join(temp_dir, file_faiss.filename)
+        path_ids = os.path.join(temp_dir, file_ids.filename)
+        path_chunks = os.path.join(temp_dir, file_chunks.filename)
+
+        with open(path_faiss, "wb") as f:
+            shutil.copyfileobj(file_faiss.file, f)
+        with open(path_ids, "wb") as f:
+            shutil.copyfileobj(file_ids.file, f)
+        with open(path_chunks, "wb") as f:
+            shutil.copyfileobj(file_chunks.file, f)
+
+        # 2. Initialize Helper Classes
         ac = agenticChunker.AgenticChunker()
-
-        # 2. Load Data from Disk
-        # This is fast (reading JSON)
-        print(f"[INFO] Loading data from: {request.saved_location}")
-        loaded = ac.load_chunks(request.saved_location)
-
-        if not loaded:
-            raise HTTPException(status_code=404, detail="Saved chunks not found at this location.")
-
-        # 3. Rebuild Memory Index (In-Memory)
-        # We must feed the embeddings back into FAISS
-        print("[INFO] Rebuilding FAISS Index...")
         memory_index = chunkMemoryIndex.ChunkMemoryIndex(dim=768)
 
-        for chunk_id, chunk_data in ac.chunks.items():
-            if "embedding" in chunk_data:
-                memory_index.add(chunk_id, chunk_data['embedding'])
+        # 3. Load Data
+        print("[INFO] Loading Chunks...")
+        with open(path_chunks, "r", encoding="utf-8") as f:
+            ac.chunks = json.load(f)
 
-        # 4. Retrieval (Layer 4)
-        # Run in threadpool to prevent blocking
-        retrieved_docs = await run_in_threadpool(
-            DBretrieve.Retrieve.retrieve,
-            request.query,
-            ac,
-            memory_index
-        )
+        print("[INFO] Loading Index...")
+        memory_index.load_local(path_faiss, path_ids)
+
+        # 4. Retrieve
+        print(f"[INFO] Searching for: {query}")
+        retrieved_docs = DBretrieve.Retrieve.retrieve(query, ac, memory_index)
 
         if not retrieved_docs:
-            return {
-                "answer": "I couldn't find any relevant information in the uploaded document.",
-                "sources": []
-            }
+            return {"message": "No matches found.", "score": 0}
 
-        # 5. Generate Answer (Layer 5)
+        # 5. Answer
         print("[INFO] Generating Answer...")
-        final_answer = await run_in_threadpool(
-            ragAnswer.Answer.answer,
-            request.query,
-            retrieved_docs,
-            ac.llm
-        )
+        final_answer = ragAnswer.Answer.answer(query, retrieved_docs, ac.llm)
 
-        # 6. Return Response
         return {
-            "query": request.query,
+            "query": query,
             "final_answer": final_answer,
-            "top_sources": [
-                {"title": doc['title'], "score": doc['score']} for doc in retrieved_docs
-            ]
+            "top_source": retrieved_docs[0]['title'],
+            "score": retrieved_docs[0]['score']
         }
 
-    except HTTPException as he:
-        raise he
     except Exception as e:
         import traceback
         traceback.print_exc()
         return {"error": str(e)}
+
+    finally:
+        # Cleanup Temp Files
+        shutil.rmtree(temp_dir)
