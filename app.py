@@ -79,8 +79,8 @@ async def OCR_On_Single_Upload(file: UploadFile = File(...)):
 
     try:
         markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(tmp_path)
-        config.storeMDContent(markdown_content)
-        return {"markdown_content": markdown_content, "SavedLocation": tmp_path}
+        savedLocation = config.storeMDContent(markdown_content)
+        return {"markdown_content": markdown_content, "SavedLocation": savedLocation}
     except Exception as e:
         return {"error": str(e)}
     finally:

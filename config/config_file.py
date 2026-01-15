@@ -23,7 +23,7 @@ class Config:
             with open(full_path, "w", encoding="utf-8") as file:
                 file.write(rawData)
             print(f"File successfully saved at: {full_path}")
-            return str(timestamp)
+            return str(filename)
         except Exception as e:
             print(f"Error saving file: {e}")
 
