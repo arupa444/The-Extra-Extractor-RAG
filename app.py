@@ -150,30 +150,41 @@ async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
 async def Multiple_OCRs_On_nonJS_nonSPA_Website(
         webLinks: List[str] = Form(...)
 ):
+
+
+    cleaned_links = []
+    for entry in webLinks:
+        cleaned_links.extend([url.strip() for url in entry.split(',') if url.strip()])
+
+    webLinks = cleaned_links
+
     results = []
-    with tempfile.TemporaryDirectory() as temp_dir:
 
-        for webLink in webLinks:
-            web_result = {}
-            try:
-                markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
-                web_result = {
-                    "webName": webLink,
-                    "markdownContent": markdown_content,
-                    "status": "success",
-                }
+    for webLink in webLinks:
+        web_result = {}
+        try:
+            markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
+            web_result = {
+                "webName": webLink,
+                "markdownContent": markdown_content,
+                "status": "success",
+            }
 
-            except Exception as e:
-                web_result = {
-                    "filename": webLink,
-                    "status": "error",
-                    "error": str(e)
-                }
+        except Exception as e:
+            web_result = {
+                "filename": webLink,
+                "status": "error",
+                "error": str(e)
+            }
 
-            results.append(web_result)
+        results.append(web_result)
 
     config.jsonStoreForMultiDoc(results)
     return {"results": results}
+
+
+
+
 
 
 
@@ -202,27 +213,33 @@ async def OCR_On_JS_SPA_Website(webLink: str = Form(...)):
 async def Multiple_OCRs_On_JS_SPA_Websites(
         webLinks: List[str] = Form(...)
 ):
+
+    cleaned_links = []
+    for entry in webLinks:
+        cleaned_links.extend([url.strip() for url in entry.split(',') if url.strip()])
+
+    webLinks = cleaned_links
     results = []
-    with tempfile.TemporaryDirectory() as temp_dir:
 
-        for webLink in webLinks:
-            web_result = {}
-            try:
-                markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
-                web_result = {
-                    "webName": webLink,
-                    "markdownContent": markdown_content,
-                    "status": "success",
-                }
+    for webLink in webLinks:
+        web_result = {}
+        try:
+            markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
+            web_result = {
+                "webName": webLink,
+                "markdownContent": markdown_content,
+                "status": "success",
+            }
 
-            except Exception as e:
-                web_result = {
-                    "filename": webLink,
-                    "status": "error",
-                    "error": str(e)
-                }
+        except Exception as e:
+            web_result = {
+                "filename": webLink,
+                "status": "error",
+                "error": str(e)
+            }
 
-            results.append(web_result)
+        results.append(web_result)
 
     config.jsonStoreForMultiDoc(results)
     return {"results": results}
+
