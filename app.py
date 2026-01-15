@@ -8,6 +8,7 @@ import requests
 import shutil
 import tempfile
 from pathlib import Path
+from rich import print
 import json
 import os
 
