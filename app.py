@@ -78,7 +78,7 @@ async def OCR_On_Single_Upload(file: UploadFile = File(...)):
         tmp_path = tmp_file.name
 
     try:
-        markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(tmp_path)
+        markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(tmp_path)
         savedLocation = config.storeMDContent(markdown_content)
         return {"markdown_content": markdown_content, "SavedLocation": savedLocation}
     except Exception as e:
@@ -104,7 +104,7 @@ async def OCR_On_Folder_Or_Multiple_file_Upload(
                 file_path = os.path.join(temp_dir, safe_filename)
                 with open(file_path, "wb") as buffer:
                     shutil.copyfileobj(file.file, buffer)
-                markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(file_path)
+                markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(file_path)
 
                 file_result = {
                     "filename": file.filename,
@@ -139,7 +139,7 @@ async def OCR_On_Folder_Or_Multiple_file_Upload(
 @app.post("/OCR_On_nonJS_nonSPA_Website", summary="OCR on Non js and Non SPA website")
 async def OCR_On_nonJS_nonSPA_Website(webLink: str = Form(...)):
     try:
-        markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
+        markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
         config.storeMDContent(markdown_content)
         return {"markdown_content": markdown_content}
     except Exception as e:
@@ -156,7 +156,7 @@ async def Multiple_OCRs_On_nonJS_nonSPA_Website(
         for webLink in webLinks:
             web_result = {}
             try:
-                markdown_content = DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
+                markdown_content = await DataExtAndRenderingService.anyThingButJSOrSPA(webLink)
                 web_result = {
                     "webName": webLink,
                     "markdownContent": markdown_content,
