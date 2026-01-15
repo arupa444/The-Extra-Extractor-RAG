@@ -47,7 +47,7 @@ class AgenticChunker:
         return dot / (norm_a * norm_b + 1e-8)
 
     # --- PART 1: PROPOSITION GENERATION ---
-    def generate_propositions(self, text: str) -> List[str]:
+    def generate_propositions(self, text: str | dict) -> List[str]:
         if self.print_logging:
             console.print(f"[bold blue]Generating propositions...[/bold blue]")
 
