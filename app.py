@@ -309,7 +309,7 @@ async def RAG_On_Single_Upload(file: UploadFile = File(...), query: str = Form(.
 
 
 @app.post("/RAG_On_Folder_Or_Multiple_file_Uploads", summary="Upload a folder or select multiple files and collectively perform RAG and save all the results in a json......")
-async def RAG_On_Folder_Or_Multiple_file_Upload(
+async def RAG_On_Folder_Or_Multiple_file_Uploads(
         files: List[UploadFile] = File(...),
         query: str = Form(...),
 ):
