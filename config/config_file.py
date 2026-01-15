@@ -3,6 +3,8 @@ from datetime import datetime
 
 class Config:
 
+    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
     @staticmethod
     def makeDirectories(dirName: str) -> None:
         os.makedirs(dirName, exist_ok=True)

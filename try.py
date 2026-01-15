@@ -17,6 +17,8 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 load_dotenv()
 console = Console()
+# import os
+
 
 
 # --- LAYER 3: MEMORY INDEX (Read-Time Performance) ---
