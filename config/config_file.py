@@ -53,7 +53,7 @@ class Config:
     @staticmethod
     def jsonStoreForMultiDoc(rawData: list, target_dir: str = "rawDataDir") -> str | None:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        extension = ".md"
+        extension = ".json"
         filename = f"Citta_{timestamp}{extension}"
         full_path = os.path.join(target_dir, filename)
         try:
