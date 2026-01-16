@@ -462,8 +462,10 @@ async def RAG_On_nonJS_nonSPA_Website(
 @app.post("/RAG_On_Multiple_nonJS_nonSPA_Website", summary="RAG on Multiple Non js and Non SPA website")
 async def RAG_On_Multiple_nonJS_nonSPA_Website(
         webLinks: List[str] = Form(...),
+        query: str = Form(...),
         subDir: str = Form('')
 ):
+    markdown_content = ""
 
     cleaned_links = []
     for entry in webLinks:
@@ -491,29 +493,115 @@ async def RAG_On_Multiple_nonJS_nonSPA_Website(
             }
 
         results.append(web_result)
+    try:
+        savedLocation = config.jsonStoreForMultiDoc(results, subDir)
+        ac = agenticChunker.AgenticChunker()
+        # 1. Raw Text Input
+        raw_text = results
 
-    config.jsonStoreForMultiDoc(results, subDir)
-    return {"results": results}
+        # 2. Ingest Data (Layer 1)
+        propositions = ac.generate_propositions(raw_text)
+
+        print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
+
+        ac.add_propositions(propositions)
+        ac.pretty_print_chunks()
+
+        # 3. Build Memory Index (Layer 3)
+        #    We initialize this AFTER ingestion is done.
+        print("\n[bold blue]Building Memory Index...[/bold blue]")
+        memory_index = chunkMemoryIndex.ChunkMemoryIndex(dim=768)
+
+        for chunk_id, chunk_data in ac.chunks.items():
+            memory_index.add(chunk_id, chunk_data['embedding'])
+
+        # 4. Retrieval (Layer 4)
+        retrieved_docs = DBretrieve.Retrieve.retrieve(query, ac, memory_index)
+
+        print(f"\n[green]Top Result:[/green] {retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})")
+
+        # 5. RAG Answer (Layer 5)
+        print("\n[bold blue]Generating Answer...[/bold blue]")
+
+        final_answer = ragAnswer.Answer.answer(query, retrieved_docs, ac.llm)
+        print(f"\n[bold]Final Answer:[/bold]\n{final_answer}")
+
+        config.save_results(savedLocation, propositions, ac.chunks, memory_index, subDir)
+        return {"Top Result": f"{retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})",
+                "Final Answer": final_answer, "markdown_content": markdown_content, "SavedLocation": savedLocation}
+    except Exception as e:
+        return {"error while perform RAG... on multiple uploaded file...": str(e)}
+
+
+
+
+
+
+
+
+
+
 
 
 @app.post("/RAG_On_JS_SPA_Website", summary="RAG on JS SPA website")
-async def RAG_On_JS_SPA_Website(webLink: str = Form(...),
-        subDir: str = Form('')):
+async def RAG_On_JS_SPA_Website(
+        webLink: str = Form(...),
+        query: str = Form(...),
+        subDir: str = Form('')
+):
     try:
         print(webLink)
         markdown_content = await DataExtAndRenderingService.websiteDataExtrationJs(webLink)
-        config.storeMDContent(markdown_content, subDir)
-        return {"markdown_content": markdown_content}
+        savedLocation = config.storeMDContent(markdown_content, subDir)
+        ac = agenticChunker.AgenticChunker()
+
+        # 1. Raw Text Input
+        raw_text = markdown_content
+
+        # 2. Ingest Data (Layer 1)
+        propositions = ac.generate_propositions(raw_text)
+
+        print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
+
+        ac.add_propositions(propositions)
+        ac.pretty_print_chunks()
+
+        # 3. Build Memory Index (Layer 3)
+        #    We initialize this AFTER ingestion is done.
+        print("\n[bold blue]Building Memory Index...[/bold blue]")
+        memory_index = chunkMemoryIndex.ChunkMemoryIndex(dim=768)
+
+        for chunk_id, chunk_data in ac.chunks.items():
+            memory_index.add(chunk_id, chunk_data['embedding'])
+
+        # 4. Retrieval (Layer 4)
+        retrieved_docs = DBretrieve.Retrieve.retrieve(query, ac, memory_index)
+
+        print(f"\n[green]Top Result:[/green] {retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})")
+
+        # 5. RAG Answer (Layer 5)
+        print("\n[bold blue]Generating Answer...[/bold blue]")
+
+        final_answer = ragAnswer.Answer.answer(query, retrieved_docs, ac.llm)
+        print(f"\n[bold]Final Answer:[/bold]\n{final_answer}")
+
+        config.save_results(savedLocation, propositions, ac.chunks, memory_index, subDir)
+        return {"Top Result": f"{retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})",
+                "Final Answer": final_answer, "markdown_content": markdown_content, "SavedLocation": savedLocation}
+
     except Exception as e:
         return {"error": str(e)}
+
 
 
 
 @app.post("/RAG_On_Multiple_JS_SPA_Websites", summary="RAG on Multiple JS SPA website")
 async def RAG_On_Multiple_JS_SPA_Websites(
         webLinks: List[str] = Form(...),
+        query: str = Form(...),
         subDir: str = Form('')
 ):
+    markdown_content = ""
 
     cleaned_links = []
     for entry in webLinks:
@@ -541,8 +629,45 @@ async def RAG_On_Multiple_JS_SPA_Websites(
 
         results.append(web_result)
 
-    config.jsonStoreForMultiDoc(results, subDir)
-    return {"results": results}
+    try:
+        savedLocation = config.jsonStoreForMultiDoc(results, subDir)
+        ac = agenticChunker.AgenticChunker()
+        # 1. Raw Text Input
+        raw_text = results
+
+        # 2. Ingest Data (Layer 1)
+        propositions = ac.generate_propositions(raw_text)
+
+        print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
+
+        ac.add_propositions(propositions)
+        ac.pretty_print_chunks()
+
+        # 3. Build Memory Index (Layer 3)
+        #    We initialize this AFTER ingestion is done.
+        print("\n[bold blue]Building Memory Index...[/bold blue]")
+        memory_index = chunkMemoryIndex.ChunkMemoryIndex(dim=768)
+
+        for chunk_id, chunk_data in ac.chunks.items():
+            memory_index.add(chunk_id, chunk_data['embedding'])
+
+        # 4. Retrieval (Layer 4)
+        retrieved_docs = DBretrieve.Retrieve.retrieve(query, ac, memory_index)
+
+        print(f"\n[green]Top Result:[/green] {retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})")
+
+        # 5. RAG Answer (Layer 5)
+        print("\n[bold blue]Generating Answer...[/bold blue]")
+
+        final_answer = ragAnswer.Answer.answer(query, retrieved_docs, ac.llm)
+        print(f"\n[bold]Final Answer:[/bold]\n{final_answer}")
+
+        config.save_results(savedLocation, propositions, ac.chunks, memory_index, subDir)
+        return {"Top Result": f"{retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})",
+                "Final Answer": final_answer, "markdown_content": markdown_content, "SavedLocation": savedLocation}
+    except Exception as e:
+        return {"error while perform RAG... on multiple uploaded file...": str(e)}
+
 
 
 @app.post("/RAG_From_Uploaded_Index", summary="Upload .faiss, .json (ids), and .json (chunks) to chat")
