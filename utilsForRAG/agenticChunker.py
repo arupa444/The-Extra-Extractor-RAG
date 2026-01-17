@@ -150,12 +150,14 @@ class AgenticChunker:
             self._create_new_chunk(proposition)
             return
 
-        chunk_id = self._find_relevant_chunk(proposition)
+        chunk_ids = self._find_relevant_chunk(proposition)
 
-        if chunk_id:
+        if chunk_ids:
             if self.print_logging:
-                print(f"[bold green]Chunk Found[/bold green] ({chunk_id}), adding to: {self.chunks[chunk_id]['title']}")
-            self.add_proposition_to_chunk(chunk_id, proposition)
+                print(f"[bold green]Chunk Found[/bold green] ({chunk_ids}),")
+            for chunk_id in chunk_ids:
+                print(f"adding to: {self.chunks[chunk_id]['title']}")
+                self.add_proposition_to_chunk(chunk_id, proposition)
         else:
             if self.print_logging:
                 print("[bold yellow]No relevant chunk found. Creating a new one.[/bold yellow]")
@@ -201,17 +203,38 @@ class AgenticChunker:
             print(f"Created chunk ({new_chunk_id}): [bold]{new_chunk_title}[/bold]")
 
     # --- PART 3: DECISION MAKING AGENTS ---
-    def _llm_judge_chunk(self, proposition, candidate_chunk_ids):
+    def _llm_judge_chunk(self, proposition, candidate_chunk_ids) -> list[str] | None:
         outline = ""
         for cid in candidate_chunk_ids:
             c = self.chunks[cid]
-            outline += f"Chunk ID: {cid}\nSummary: {c['summary']}\n\n"
+            outline += f"Chunk ID: {cid}\nSummary: {c['summary']}\nCore Idea: {c['canonical_text']}\n\n"
 
         PROMPT = ChatPromptTemplate.from_messages([
             ("system", """
-            Decide if the proposition belongs to any chunk below.
-            Return ONLY the chunk_id or "No chunks".
-            """),
+        You are a knowledge-structuring judge.
+
+        Your task is to decide which of the chunks below
+        the given proposition logically belongs to.
+
+        Rules:
+        - Select a chunk ONLY if the proposition is a direct,
+          factual or structural fit with the core purpose of that chunk.
+        - Do NOT select chunks based on weak topical similarity.
+        - A proposition may belong to multiple chunks
+          if it serves different structural roles
+          (for example: entity-specific and category-level).
+        - If the proposition does not clearly belong to any chunk,
+          return an empty list.
+
+        Return STRICTLY a JSON list of chunk_ids.
+        Examples:
+        ["C002"]
+        ["C001", "C004"]
+        []
+
+        Do not explain.
+        Do not include any extra text.
+        """),
             ("user", "Chunks:\n{outline}\nProposition:\n{proposition}")
         ])
 
@@ -222,7 +245,7 @@ class AgenticChunker:
 
         return response if response in candidate_chunk_ids else None
 
-    def _find_relevant_chunk(self, proposition):
+    def _find_relevant_chunk(self, proposition)-> list[str] | None:
         prop_embedding = self.embedder.embed_query(proposition)
         scored_chunks = []
         for cid, chunk in self.chunks.items():
@@ -231,7 +254,7 @@ class AgenticChunker:
             scored_chunks.append((cid, score))
 
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
-        top_candidates = [cid for cid, score in scored_chunks[:3] if score > 0.75]
+        top_candidates = [cid for cid, score in scored_chunks[:5] if score > 0.75]
 
         if not top_candidates:
             return None
