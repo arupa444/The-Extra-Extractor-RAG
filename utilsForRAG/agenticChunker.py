@@ -152,11 +152,15 @@ class AgenticChunker:
 
         chunk_ids = self._find_relevant_chunk(proposition)
 
+        print("Received chunk ids ", chunk_ids)
+
         if chunk_ids:
+
             if self.print_logging:
                 print(f"[bold green]Chunk Found[/bold green] ({chunk_ids}),")
             for chunk_id in chunk_ids:
                 print(f"adding to: {self.chunks[chunk_id]['title']}")
+                print("successfully merged : ", chunk_id, " chunk id")
                 self.add_proposition_to_chunk(chunk_id, proposition)
         else:
             if self.print_logging:
@@ -205,9 +209,10 @@ class AgenticChunker:
     # --- PART 3: DECISION MAKING AGENTS ---
     def _llm_judge_chunk(self, proposition, candidate_chunk_ids) -> list[str] | None:
         outline = ""
+        print("The candidate_chunk_ids: ",candidate_chunk_ids)
         for cid in candidate_chunk_ids:
             c = self.chunks[cid]
-            outline += f"Chunk ID: {cid}\nSummary: {c['summary']}\nCore Idea: {c['canonical_text']}\n\n"
+            outline += f"Chunk ID: {cid}\nSummary: {c['summary']}\n\n"
 
         PROMPT = ChatPromptTemplate.from_messages([
             ("system", """
@@ -235,6 +240,7 @@ class AgenticChunker:
             No explanation.
             No extra text.
             """)
+
             ,
             ("user", "Chunks:\n{outline}\nProposition:\n{proposition}")
         ])
@@ -244,7 +250,26 @@ class AgenticChunker:
             "proposition": proposition
         }).strip()
 
-        return response if response in candidate_chunk_ids else None
+        print("response: ", response)
+        try:
+            # 1. Clean the string (remove Markdown code blocks if the LLM added them)
+            cleaned_response = response.replace("```json", "").replace("```", "").strip()
+
+            # 2. Parse the JSON string into a Python list
+            parsed_ids = json.loads(cleaned_response)
+
+            # 3. Validation: Ensure it is a list
+            if isinstance(parsed_ids, list):
+                # 4. Filter: Only return IDs that were actually in the candidates list
+                #    (This prevents hallucinations or made-up IDs)
+                valid_ids = [cid for cid in parsed_ids if cid in candidate_chunk_ids]
+                return valid_ids
+
+            return None  # Return None if the LLM didn't return a list structure
+
+        except json.JSONDecodeError:
+            print(f"Error parsing JSON from LLM: {response}")
+            return None
 
     def _find_relevant_chunk(self, proposition)-> list[str] | None:
         prop_embedding = self.embedder.embed_query(proposition)

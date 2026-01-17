@@ -741,10 +741,11 @@ async def mdRag(query: str = Form(...),
         ac = agenticChunker.AgenticChunker()
 
         # 1. Raw Text Input
-        raw_text = markdown_content
+
+        with open('vectorStoreDB/444anotherTryOnChunking_2026-01-16_18-35-19/Citta_Propositions_Citta_2026-01-16_17-44-25.json', 'r', encoding='utf-8') as f:
+            propositions = json.load(f)
 
         # 2. Ingest Data (Layer 1)
-        propositions = ac.generate_propositions(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
