@@ -26,3 +26,8 @@ langchain-google-genai
 rich
 python-dotenv
 faiss-cpu
+
+
+scrapy
+lxml
+beautifulsoup4

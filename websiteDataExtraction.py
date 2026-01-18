@@ -2,7 +2,11 @@ from docling.document_converter import DocumentConverter
 from docling.datamodel.base_models import InputFormat
 from playwright.sync_api import sync_playwright
 
-source = "https://the-little-journal.com/"
+from config.config_file import Config
+
+config = Config()
+
+source = "https://apmsmeone.ap.gov.in/"
 
 
 def get_dynamic_html(url):
@@ -24,4 +28,6 @@ converter = DocumentConverter()
 
 result = converter.convert_string(rendered_html, InputFormat.HTML)
 
-print(result.document.export_to_markdown())
+result.document.export_to_markdown()
+
+config.storeMDContent(result.document.export_to_markdown(), subDir="trytrytry")
