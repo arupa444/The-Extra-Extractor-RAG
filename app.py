@@ -61,7 +61,7 @@ app = FastAPI(title="Multi Input Rag END-TO-END")
 # """
 #
 # # 2. Ingest Data (Layer 1)
-# propositions = ac.generate_propositions(raw_text)
+# propositions = ac.process_accumulated_data(raw_text)
 # ac.add_propositions(propositions)
 # ac.pretty_print_chunks()
 #
@@ -272,7 +272,7 @@ async def RAG_On_Single_Upload(file: UploadFile = File(...), query: str = Form(.
         raw_text = markdown_content
 
         # 2. Ingest Data (Layer 1)
-        propositions = ac.generate_propositions(raw_text)
+        propositions = ac.process_accumulated_data(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
@@ -364,7 +364,7 @@ async def RAG_On_Folder_Or_Multiple_file_Uploads(
         raw_text = results
 
         # 2. Ingest Data (Layer 1)
-        propositions = ac.generate_propositions(raw_text)
+        propositions = ac.process_accumulated_data(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
@@ -421,7 +421,7 @@ async def RAG_On_nonJS_nonSPA_Website(
         raw_text = markdown_content
 
         # 2. Ingest Data (Layer 1)
-        propositions = ac.generate_propositions(raw_text)
+        propositions = ac.process_accumulated_data(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
@@ -497,7 +497,7 @@ async def RAG_On_Multiple_nonJS_nonSPA_Website(
         raw_text = results
 
         # 2. Ingest Data (Layer 1)
-        propositions = ac.generate_propositions(raw_text)
+        propositions = ac.process_accumulated_data(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
@@ -556,7 +556,7 @@ async def RAG_On_JS_SPA_Website(
         raw_text = markdown_content
 
         # 2. Ingest Data (Layer 1)
-        propositions = ac.generate_propositions(raw_text)
+        propositions = ac.process_accumulated_data(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
@@ -633,7 +633,7 @@ async def RAG_On_Multiple_JS_SPA_Websites(
         raw_text = results
 
         # 2. Ingest Data (Layer 1)
-        propositions = ac.generate_propositions(raw_text)
+        propositions = ac.process_accumulated_data(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
@@ -942,20 +942,47 @@ async def clear_file_cache():
 @app.post("/full_website_extraction")
 async def full_website_extraction(
         # background_tasks: BackgroundTasks,
+        query: str = Form(...),
         webSite: str = Form(...)
 ):
-    helperFile.run_spider_process(webSite)
-    print("Full website extraction complete")
-    allowed_domain = urlparse(webSite).netloc
-    print("the dir name : ", allowed_domain)
+    try:
+        helperFile.run_spider_process(webSite)
+        print("Full website extraction complete")
+        allowed_domain = urlparse(webSite).netloc
+        print("the dir name : ", allowed_domain)
 
-    helperFile.run_HTMLs_PDFs_to_MDFile_process(allowed_domain)
-    print("HTMLs PDFs to MDFile process complete")
+        raw_text = helperFile.run_HTMLs_PDFs_to_MDFile_process(allowed_domain)
+        print("HTMLs PDFs to MDFile process complete")
+        ac = agenticChunker.AgenticChunker()
 
+        propositions = ac.process_accumulated_data(raw_text)
 
+        print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 
+        ac.add_propositions(propositions)
+        ac.pretty_print_chunks()
 
-    return {
-        "message": "Crawling started in the background",
-        "url": webSite
-    }
+        # 3. Build Memory Index (Layer 3)
+        #    We initialize this AFTER ingestion is done.
+        print("\n[bold blue]Building Memory Index...[/bold blue]")
+        memory_index = chunkMemoryIndex.ChunkMemoryIndex(dim=768)
+
+        for chunk_id, chunk_data in ac.chunks.items():
+            memory_index.add(chunk_id, chunk_data['embedding'])
+
+        # 4. Retrieval (Layer 4)
+        retrieved_docs = DBretrieve.Retrieve.retrieve(query, ac, memory_index)
+
+        print(f"\n[green]Top Result:[/green] {retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})")
+
+        # 5. RAG Answer (Layer 5)
+        print("\n[bold blue]Generating Answer...[/bold blue]")
+
+        final_answer = ragAnswer.Answer.answer(query, retrieved_docs, ac.llm)
+        print(f"\n[bold]Final Answer:[/bold]\n{final_answer}")
+
+        config.save_results(allowed_domain, propositions, ac.chunks, memory_index, allowed_domain)
+        return {"Top Result": f"{retrieved_docs[0]['title']} (Score: {retrieved_docs[0]['score']:.4f})",
+                "Final Answer": final_answer, "SavedLocation": allowed_domain}
+    except Exception as e:
+        return {"error while perform RAG... on multiple uploaded file...": str(e)}

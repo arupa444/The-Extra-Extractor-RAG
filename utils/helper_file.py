@@ -1,6 +1,8 @@
 from playwright.async_api import async_playwright
 import subprocess
 import sys
+from pathlib import Path
+import json
 
 class HelperFile:
     @staticmethod
@@ -28,6 +30,19 @@ class HelperFile:
 
     @staticmethod
     def run_HTMLs_PDFs_to_MDFile_process(subDirName: str):
-        # This runs the separate python script
-        # sys.executable ensures we use the same python environment (venv)
-        subprocess.run([sys.executable, "HTMLs_PDFs_to_MD.py", subDirName])
+
+        subprocess.run([sys.executable, "HTMLs_PDFs_to_MD.py", subDirName], check=True)
+        json_output_path = Path(f"storeCurlData/{subDirName}/{subDirName}.json")
+
+        # 3. Read the file and return the data
+        if json_output_path.exists():
+            try:
+                with open(json_output_path, "r", encoding="utf-8") as f:
+                    accumulated_results = json.load(f)
+                return accumulated_results
+            except json.JSONDecodeError:
+                print("Error: The generated JSON file was corrupted.")
+                return []
+        else:
+            print(f"Error: Expected output file not found at {json_output_path}")
+            return []

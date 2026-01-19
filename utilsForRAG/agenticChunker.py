@@ -2,7 +2,7 @@ import os
 import uuid
 import json
 import math
-from typing import List
+from typing import List, Any
 from rich import print
 from rich.console import Console
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -10,6 +10,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
+from itertools import batched  # Requires Python 3.12+
 
 
 
@@ -47,7 +48,7 @@ class AgenticChunker:
         return dot / (norm_a * norm_b + 1e-8)
 
     # --- PART 1: PROPOSITION GENERATION ---
-    def generate_propositions(self, text: str | dict) -> List[str]:
+    def generate_propositions(self, text: str | dict | List[Any]) -> List[str]:
         if self.print_logging:
             console.print("[bold blue]Generating propositions...[/bold blue]")
 
@@ -125,6 +126,41 @@ class AgenticChunker:
                 for line in cleaned_response.splitlines()
                 if line.strip()
             ]
+
+    def process_accumulated_data(self, data: str | list | dict )-> List[str]:
+        """
+        Dispatches data to generate_propositions based on type and size.
+        """
+        all_propositions = []
+
+        # CASE 1: It is a single String or Dictionary (No iteration needed)
+        if isinstance(data, (str, dict)):
+            print(f"Processing single {type(data).__name__}...")
+            props = self.generate_propositions(data)
+            all_propositions.extend(props)
+
+        # CASE 2: It is a List
+        elif isinstance(data, list):
+            # Subcase A: List is small (<= 3), send it all at once
+            if len(data) <= 3:
+                print(f"Processing small list (size {len(data)})...")
+                props = self.generate_propositions(data)
+                all_propositions.extend(props)
+
+            # Subcase B: List is large (> 3), iterate in batches of 3
+            else:
+                print(f"Batching large list (size {len(data)}) into sets of 3...")
+
+                # MODERN APPROACH: itertools.batched
+                for batch_tuple in batched(data, 3):
+                    # batched returns a tuple, convert to list for your function
+                    batch_list = list(batch_tuple)
+
+                    # Pass this chunk of 3 to the LLM
+                    props = self.generate_propositions(batch_list)
+                    all_propositions.extend(props)
+
+        return all_propositions
 
     # --- PART 2: THE CHUNKING LOGIC ---
 
@@ -213,6 +249,8 @@ class AgenticChunker:
             ("system", """
             Decide if the proposition belongs to any chunk below.
             Return ONLY the chunk_id or "No chunks".
+            No explanation.
+            No extra text.
             """),
             ("user", "Chunks:\n{outline}\nProposition:\n{proposition}")
         ])
