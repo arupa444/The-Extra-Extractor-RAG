@@ -13,14 +13,25 @@ class FullWebsiteSpider(scrapy.Spider):
         self.allowed_domain = urlparse(start_url).netloc
         self.start_urls = [start_url]
 
-        os.makedirs("data/html", exist_ok=True)
-        os.makedirs("data/files", exist_ok=True)
+        # =====================
+        # DYNAMIC DIRECTORY SETUP
+        # =====================
+        # 1. Define the base path: data/domain.com/
+        self.base_dir = os.path.join("storeCurlData", self.allowed_domain)
+
+        # 2. Define sub-paths: data/domain.com/html and data/domain.com/files
+        self.html_dir = os.path.join(self.base_dir, "html")
+        self.files_dir = os.path.join(self.base_dir, "files")
+
+        # 3. Create the directories
+        os.makedirs(self.html_dir, exist_ok=True)
+        os.makedirs(self.files_dir, exist_ok=True)
 
     def parse(self, response):
         url = response.url
-
         content_type = response.headers.get("Content-Type", b"").decode()
 
+        # Sanitize filename
         safe_name = (
             url.replace("https://", "")
             .replace("http://", "")
@@ -32,7 +43,8 @@ class FullWebsiteSpider(scrapy.Spider):
         # HTML PAGE
         # =====================
         if "text/html" in content_type:
-            path = f"data/html/{safe_name}.html"
+            # Save inside the specific domain's HTML folder
+            path = os.path.join(self.html_dir, f"{safe_name}.html")
 
             with open(path, "w", encoding="utf-8") as f:
                 f.write(response.text)
@@ -54,11 +66,13 @@ class FullWebsiteSpider(scrapy.Spider):
                     )
 
         # =====================
-        # NON-HTML FILE
+        # NON-HTML FILE (PDF, IMG, etc.)
         # =====================
         else:
             ext = content_type.split("/")[-1].split(";")[0]
-            path = f"data/files/{safe_name}.{ext}"
+
+            # Save inside the specific domain's FILES folder
+            path = os.path.join(self.files_dir, f"{safe_name}.{ext}")
 
             with open(path, "wb") as f:
                 f.write(response.body)

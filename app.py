@@ -12,6 +12,9 @@ from rich import print
 import json
 import os
 
+from scrapy.crawler import CrawlerProcess
+from utils.spider import FullWebsiteSpider
+
 from utils.dataExtrationAndRendering import DataExtAndRenderingService
 
 from config.config_file import Config
@@ -934,3 +937,12 @@ async def clear_file_cache():
     """Clear the file cache (admin use)"""
     file_cache.clear()
     return {"message": "File cache cleared"}
+
+
+#
+# @app.post("/full_website_extraction")
+# async def full_website_extraction(
+#         webSite: str = Form(...),
+#         subDir: str = Form('')
+# ):
+#

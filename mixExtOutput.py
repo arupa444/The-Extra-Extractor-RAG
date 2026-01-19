@@ -12,7 +12,7 @@ from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
 BASE_DIR = Path("data/apmsmeoneMSME")
 PDF_DIR = BASE_DIR / "files"
 HTML_DIR = BASE_DIR / "html"
-OUTPUT_DIR = Path("markdown_output")
+OUTPUT_DIR = Path("markdown_output/apmsmeoneMSME")
 
 # A lock to keep console output clean (so lines don't mix up)
 print_lock = threading.Lock()

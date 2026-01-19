@@ -7,7 +7,7 @@ process = CrawlerProcess({
 
 process.crawl(
     FullWebsiteSpider,
-    start_url="https://apmsmeone.ap.gov.in/"
+    start_url="https://arupas-portfolio.vercel.app/"
 )
 
 process.start()
