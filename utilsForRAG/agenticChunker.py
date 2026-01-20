@@ -41,6 +41,15 @@ class AgenticChunker:
             google_api_key=api_key
         )
 
+    def _to_text(self, data):
+        """Helper to safely convert Dicts/Lists to Strings"""
+        if isinstance(data, str):
+            return data
+        if isinstance(data, (dict, list)):
+            return json.dumps(data, ensure_ascii=False)
+        return str(data)
+
+
     def cosine_similarity(self, a, b):
         dot = sum(x * y for x, y in zip(a, b))
         norm_a = math.sqrt(sum(x * x for x in a))
@@ -227,7 +236,7 @@ class AgenticChunker:
 
     def _create_new_chunk(self, proposition):
         new_chunk_id = str(uuid.uuid4())[:self.id_truncate_limit]
-        new_chunk_summary = self._get_new_chunk_summary(proposition)
+        new_chunk_summary = self._get_new_chunk_summary(self._to_text(proposition))
         new_chunk_title = self._get_new_chunk_title(new_chunk_summary)
 
         # Create temporary dict to generate canonical text
@@ -241,7 +250,7 @@ class AgenticChunker:
 
         # ✅ STEP 2 Update: Canonicalize & Embed on creation
         canonical_text = self._canonicalize_chunk(chunk_data)
-        embedding = self.embedder.embed_query(canonical_text)
+        embedding = self.embedder.embed_query(self._to_text(canonical_text))
 
         # Finalize chunk storage
         chunk_data['canonical_text'] = canonical_text
@@ -271,14 +280,15 @@ class AgenticChunker:
 
         response = (PROMPT | self.llm | StrOutputParser()).invoke({
             "outline": outline,
-            "proposition": proposition
+            "proposition": self._to_text(proposition)
         }).strip()
 
         return response if response in candidate_chunk_ids else None
 
 
-    def _find_relevant_chunk(self, proposition)-> list[str] | None:
-        prop_embedding = self.embedder.embed_query(proposition)
+    def _find_relevant_chunk(self, proposition)-> str | None:
+        prop_text = self._to_text(proposition)
+        prop_embedding = self.embedder.embed_query(prop_text)
         scored_chunks = []
         for cid, chunk in self.chunks.items():
             # Uses the embedding of the Canonical Text now (much more accurate)
@@ -310,13 +320,14 @@ class AgenticChunker:
         return (PROMPT | self.llm | StrOutputParser()).invoke({"summary": summary})
 
     def _update_chunk_summary(self, chunk):
+        props_text_list = [self._to_text(p) for p in chunk['propositions']]
         PROMPT = ChatPromptTemplate.from_messages([
             ("system",
              "Update the summary for this chunk based on the existing summary and the propositions. Keep it 1 sentence."),
             ("user", "Propositions:\n{propositions}\n\nCurrent Summary:\n{current_summary}")
         ])
         return (PROMPT | self.llm | StrOutputParser()).invoke({
-            "propositions": "\n".join(chunk['propositions']),
+            "propositions": "\n".join(props_text_list),
             "current_summary": chunk['summary']
         })
 

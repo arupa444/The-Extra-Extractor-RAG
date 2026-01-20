@@ -731,10 +731,13 @@ async def rag_from_uploaded_index(
 
 @app.post("/mdRag", summary="You can upload any kind of source file and get the RAG output....")
 async def mdRag(query: str = Form(...),
-        subDir: str = Form('')):
+        subDir: str = Form(''),
+        pathLinkOfMDFile: str = Form(...),
+        pathLinkOfJSONFile: str = Form(...)
+        ):
     try:
         # Open the file in 'read' mode with utf-8 encoding
-        with open('/Users/arupanandaswain/PycharmProjects/docling-pdf-extract/rawDataDir/handbookOfMSME_2026-01-16_16-02-38/Citta_2026-01-16_16-02-38.md', 'r', encoding='utf-8') as file:
+        with open(pathLinkOfMDFile, 'r', encoding='utf-8') as file:
             content = file.read()
 
         # Print the content
@@ -744,7 +747,7 @@ async def mdRag(query: str = Form(...),
 
         # 1. Raw Text Input
 
-        with open('vectorStoreDB/444anotherTryOnChunking_2026-01-16_18-35-19/Citta_Propositions_Citta_2026-01-16_17-44-25.json', 'r', encoding='utf-8') as f:
+        with open(pathLinkOfJSONFile, 'r', encoding='utf-8') as f:
             propositions = json.load(f)
 
         # 2. Ingest Data (Layer 1)
@@ -946,7 +949,7 @@ async def full_website_extraction(
         webSite: str = Form(...)
 ):
     try:
-        helperFile.run_spider_process(webSite)
+        # helperFile.run_spider_process(webSite)
         print("Full website extraction complete")
         allowed_domain = urlparse(webSite).netloc
         print("the dir name : ", allowed_domain)
@@ -963,6 +966,15 @@ async def full_website_extraction(
         propositions = ac.process_accumulated_data(raw_text)
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
+
+
+        extension = ".json"
+        fileNameForPropositions = f"Citta_Propositions_{allowed_domain}{extension}"
+
+        prop_path = os.path.join("vectorStoreDB", fileNameForPropositions)
+        with open(prop_path, "w", encoding="utf-8") as f:
+            json.dump(propositions, f, indent=4, ensure_ascii=False)
+
 
         ac.add_propositions(propositions)
         ac.pretty_print_chunks()
