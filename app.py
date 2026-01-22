@@ -943,7 +943,7 @@ async def clear_file_cache():
 
 
 @app.post("/full_website_extraction_and_execution")
-async def full_website_extraction(
+async def full_website_extraction_and_execution(
         # background_tasks: BackgroundTasks,
         query: str = Form(...),
         webSite: str = Form(...)
