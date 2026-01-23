@@ -966,11 +966,11 @@ async def full_website_extraction_and_execution(
         propositions = ac.process_accumulated_data(raw_text)
 
 
-        extension = ".json"
-        fileNameForPropositions = f"vectorStoreDB/Citta_Propositions_{allowed_domain}{extension}"
+        # only and only if you think, it will stop inbetween
 
-        with open(fileNameForPropositions, "r", encoding="utf-8") as f:
-            propositions = json.load(f)
+
+        extension = ".json"
+        fileNameForPropositions = f"Citta_Propositions_{allowed_domain}{extension}"
 
         print(f"\n[bold cyan]Generated {len(propositions)} Propositions[/bold cyan]")
 

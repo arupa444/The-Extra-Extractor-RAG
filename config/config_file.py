@@ -45,7 +45,7 @@ class Config:
         fileNameForPropositions = f"Citta_Propositions_{savedLocation}{extension}"
         fileNameForChunks = f"Citta_Chunks_{savedLocation}{extension}"
         extension1 = ".db"
-        fileNameForChunksDB = f"Citta_Chunks_{savedLocation}{extension1}"
+        fileNameForChunksDB = f"{folder_name}/Citta_Chunks_{savedLocation}{extension1}"
 
         # Create Folder
         os.makedirs(folder_name, exist_ok=True)
