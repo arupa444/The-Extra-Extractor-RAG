@@ -159,7 +159,7 @@ Content-Type: application/json
 
 Body:
 {
-  "file/folder": files,
+  "file/folder": files, #html file and more
   "subDir": (optional) Name the directory
 }
 
