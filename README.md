@@ -84,8 +84,8 @@ The-Extra-Extractor-RAG/
 
 ### Prerequisites
 
-- Python 3.8 or higher
-- pip package manager
+- Python 3.12
+- pip package manager if you are using UV then thats better
 - Git
 
 ### Installation
