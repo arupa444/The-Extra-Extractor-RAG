@@ -117,10 +117,10 @@ The `app.py` file provides REST API endpoints for programmatic access to all ext
 #### Starting the Server
 
 ```bash
-python app.py
+uvicorn app:app --reload --port 8000
 ```
 
-The server will start on `http://localhost:5000` (or configured port).
+The server will start on `http://localhost:8000` (or configured port).
 
 #### API Endpoints
 
