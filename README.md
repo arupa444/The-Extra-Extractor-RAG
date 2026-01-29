@@ -88,7 +88,7 @@ The-Extra-Extractor-RAG/
 ### Prerequisites
 
 - Python 3.12
-- pip package manager if you are using UV then thats better
+- pip package manager and if you are using UV then thats better
 - Git
 
 ### Installation
@@ -128,104 +128,83 @@ The server will start on `http://localhost:8000` (or configured port).
 #### API Endpoints
 
 ##### 1. PDF to Markdown Conversion
+
+#### Endpoints name...
+
+- /OCR_On_Single_Upload
+- /OCR_On_Folder_Or_Multiple_file_Uploads
+
 ```http
 POST /api/v1/pdf-to-markdown
 Content-Type: multipart/form-data
 
+
+
 Parameters:
-- file: PDF file (multipart/form-data)
-- output_format: (optional) markdown format options
+- file/folder: PDF files (multipart/form-data)
+- subDir: (optional) Name the directory
 
 Response:
 {
-  "status": "success",
   "markdown": "# Extracted content...",
-  "metadata": {
-    "pages": 10,
-    "title": "Document Title"
-  }
+  "SavedLocation": "# Saved location... "
 }
 ```
 
-##### 2. HTML to Markdown Conversion
+##### also do other files like html and more
+
 ```http
 POST /api/v1/html-to-markdown
 Content-Type: application/json
 
 Body:
 {
-  "html_content": "<html>...</html>",
-  "url": "https://example.com" (optional)
+  "file/folder": files,
+  subDir: (optional) Name the directory
 }
 
 Response:
 {
-  "status": "success",
   "markdown": "# Extracted content...",
-  "metadata": {
-    "title": "Page Title",
-    "word_count": 500
-  }
+  "SavedLocation": "# Saved location... "
 }
 ```
 
-##### 3. Website Extraction
+##### 2. Website Extraction
+
+#### Endpoints name...
+
+- /OCR_On_nonJS_nonSPA_Website
+- /Multiple_OCRs_On_nonJS_nonSPA_Website
+- /OCR_On_JS_SPA_Website
+- /Multiple_OCRs_On_JS_SPA_Websites
+
 ```http
 POST /api/v1/extract-website
 Content-Type: application/json
 
 Body:
 {
-  "url": "https://example.com",
-  "depth": 2,  (optional, default: 1)
-  "max_pages": 50  (optional, default: 100)
+  "webLink": "https://example.com", # if you want to extract a SPA and only one page
+  "weblinks": ["https://example.com", "https://example1.com",.....] # multiple link that you want to fetch
+  subDir: (optional) Name the directory
 }
 
 Response:
 {
-  "status": "success",
-  "pages_extracted": 15,
-  "markdown_files": [
-    {
-      "url": "https://example.com/page1",
-      "markdown": "# Content...",
-      "metadata": {}
-    }
-  ]
-}
-```
-
-##### 4. Batch Conversion
-```http
-POST /api/v1/batch-convert
-Content-Type: multipart/form-data
-
-Parameters:
-- files: Multiple files (PDFs, HTMLs)
-- output_format: markdown
-
-Response:
-{
-  "status": "success",
-  "converted_files": [
-    {
-      "filename": "file1.pdf",
-      "markdown": "# Content...",
-      "status": "success"
-    }
-  ],
-  "failed_files": []
-}
-```
-
-##### 5. Health Check
-```http
-GET /api/v1/health
-
-Response:
-{
-  "status": "healthy",
-  "version": "1.0.0"
+    "markdown_content": "#markdown_content content" # only when there is only one SPA to extract
+    "results": [     # multiple SPA
+        {
+            "filename": file.filename,
+            "status": "success",
+            "markdown_content": markdown_content
+        },
+        {
+            "filename": file.filename,
+            "status": "success",
+            "markdown_content": markdown_content
+        },.....
+        ]
 }
 ```
 
