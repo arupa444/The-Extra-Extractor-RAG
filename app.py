@@ -90,8 +90,10 @@ app = FastAPI(title="Multi Input Rag END-TO-END")
 # OCR Part....
 
 @app.post("/OCR_On_Single_Upload", summary="You can upload any kind of source file and get the OCR output....")
-async def OCR_On_Single_Upload(file: UploadFile = File(...),
-        subDir: str = Form('')):
+async def OCR_On_Single_Upload(
+        file: UploadFile = File(...),
+        subDir: str = Form('')
+):
 
     file_suffix = Path(file.filename).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
@@ -942,7 +944,38 @@ async def clear_file_cache():
 
 
 
-@app.post("/full_website_extraction_and_execution")
+@app.post("/full_website_extraction")
+async def full_website_extraction(
+        # background_tasks: BackgroundTasks,
+        webSite: str = Form(...)
+):
+    try:
+        helperFile.run_spider_process(webSite)
+        print("Full website extraction complete")
+        return {"message": "Full website extraction complete"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/full_website_extraction_and_conversation")
+async def full_website_extraction_and_conversation(
+        # background_tasks: BackgroundTasks,
+        webSite: str = Form(...)
+):
+    try:
+        helperFile.run_spider_process(webSite)
+        print("Full website extraction complete")
+        allowed_domain = urlparse(webSite).netloc
+        print("the dir name : ", allowed_domain)
+
+        raw_text = helperFile.run_HTMLs_PDFs_to_MDFile_process(allowed_domain)
+        return {"message": "Full website extraction and conversation complete",
+                "raw_text": raw_text}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/full_website_extraction_conversation_and_execution")
 async def full_website_extraction_and_execution(
         # background_tasks: BackgroundTasks,
         query: str = Form(...),
