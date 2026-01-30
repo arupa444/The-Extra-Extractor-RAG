@@ -129,7 +129,7 @@ The server will start on `http://localhost:8000` (or configured port).
 
 ##### 1. PDF to Markdown Conversion
 
-#### Endpoints name...
+##### Endpoints name...
 
 - /OCR_On_Single_Upload
 - /OCR_On_Folder_Or_Multiple_file_Uploads
@@ -172,7 +172,7 @@ Response:
 
 ##### 2. Website Extraction
 
-#### Endpoints name...
+##### Endpoints name...
 
 - /OCR_On_nonJS_nonSPA_Website
 - /Multiple_OCRs_On_nonJS_nonSPA_Website
@@ -311,29 +311,106 @@ SCRAPER_CONFIG = {
 
 #### 1. **Extract and Convert Documents**
 ```python
-from app import extract_pdf_to_markdown
-
-# Extract content
-markdown_content = extract_pdf_to_markdown('document.pdf')
+def run_spider_process(url: str):
+    # This runs the separate python script
+    # sys.executable ensures we use the same python environment (venv)
+    subprocess.run([sys.executable, "run_spidy.py", url])
 ```
 
-#### 2. **Chunk the Text**
 ```python
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+def run_HTMLs_PDFs_to_MDFile_process(subDirName: str):
 
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=200
-)
-chunks = splitter.split_text(markdown_content)
+subprocess.run([sys.executable, "HTMLs_PDFs_to_MD.py", subDirName], check=True)
+json_output_path = Path(f"storeCurlData/{subDirName}/{subDirName}.json")
+
+# 3. Read the file and return the data
+if json_output_path.exists():
+    try:
+        with open(json_output_path, "r", encoding="utf-8") as f:
+            accumulated_results = json.load(f)
+        return accumulated_results
+    except json.JSONDecodeError:
+        print("Error: The generated JSON file was corrupted.")
+        return []
+else:
+    print(f"Error: Expected output file not found at {json_output_path}")
+    return []
+```
+
+#### 2. **Chunk the Text (Agentic chunker)**
+```python
+class AgenticChunker: # using the Agentic Chunker
+    ...
+    ...
+    ...
+    def generate_propositions(self, text: str | dict | List[Any]) -> List[str]:
+        if self.print_logging:
+            console.print("[bold blue]Generating propositions...[/bold blue]")
+
+        print("Started generating propositions...")
+
+        PROMPT = ChatPromptTemplate.from_messages([
+            ("system", """
+            Decompose the text into distinct, atomic propositions. And strictly don't miss any information.
+            Return strictly a JSON list of strings.
+            """),
+            ("user", "{text}")
+        ])
+
+        runnable = PROMPT | self.llm | StrOutputParser()
+        raw_response = runnable.invoke({"text": text})
+        cleaned_response = (
+            raw_response
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
+
+        print("Clean response: ",cleaned_response)
+
+    ...
+    ...
+    ...
+    
+    def _llm_judge_chunk(self, proposition, candidate_chunk_ids) -> None | str:
+        outline = ""
+        for cid in candidate_chunk_ids:
+            c = self.chunks[cid]
+            outline += f"Chunk ID: {cid}\nSummary: {c['summary']}\n\n"
+
+        PROMPT = ChatPromptTemplate.from_messages([
+            ("system", """
+            Decide if the proposition belongs to any chunk below.
+            Return ONLY the chunk_id or "No chunks".
+            No explanation.
+            No extra text.
+            """),
+            ("user", "Chunks:\n{outline}\nProposition:\n{proposition}")
+        ])
+
+        response = (PROMPT | self.llm | StrOutputParser()).invoke({
+            "outline": outline,
+            "proposition": self._to_text(proposition)
+        }).strip()
+
+        return response if response in candidate_chunk_ids else None
+
 ```
 
 #### 3. **Generate Embeddings**
 ```python
-from sentence_transformers import SentenceTransformer
+self.embedder = GoogleGenerativeAIEmbeddings(
+    model="models/text-embedding-004",
+    google_api_key=api_key
+)
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
-embeddings = model.encode(chunks)
+# or
+
+self.embedder = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={'device': 'cpu'},
+    encode_kwargs={'normalize_embeddings': True}
+)
 ```
 
 #### 4. **Store in Vector Database**
