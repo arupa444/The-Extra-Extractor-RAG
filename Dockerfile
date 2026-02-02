@@ -1,20 +1,28 @@
 FROM python:3.12-slim
 
-# 1. Install uv
+# Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# 2. Copy requirements first (for caching)
+# System deps required BEFORE playwright install
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first (for caching)
 COPY requirements.txt .
 
-# 3. Install dependencies
+# Install Python deps
 RUN uv pip install --system --no-cache -r requirements.txt
 
-# 4. Copy the rest of the app
-#    (This includes .streamlit/config.toml, but EXCLUDES secrets.toml due to .dockerignore)
+# 🔥 Install Playwright browsers + OS deps
+RUN playwright install --with-deps
+
+# Copy the rest of the app
 COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app:app", "--reload"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
