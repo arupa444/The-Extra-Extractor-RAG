@@ -628,11 +628,33 @@ is_valid, issues = validator.validate(markdown_content)
 
 ### Common Issues
 
+
+
+**Python version 12 and the requirements conflicts**
+```bash
+# Solution: install uv
+
+uv venv --python 3.12       # This will create a virtual environment with python version 12 
+
+# activate the env
+# if mac/linux
+source .venv/bin/activate
+# if windows
+venv/bin/activate.ps1
+
+# check the python env
+python --version  
+Python 3.12.. # return 
+
+# install the requirements..
+uv pip install requirements.txt
+```
+
+
 **Issue: PDF extraction fails**
 ```bash
 # Solution: Install system dependencies
-sudo apt-get install poppler-utils  # Linux
-brew install poppler                 # macOS
+# Use endpoints according to your requirements...
 ```
 
 **Issue: Website scraping blocked**
@@ -642,13 +664,9 @@ SCRAPER_CONFIG = {
     'user_agent': 'Mozilla/5.0...',
     'delay_seconds': 2
 }
-```
 
-**Issue: Memory errors with large files**
-```python
-# Solution: Process in chunks
-from utilsForRAG.chunked_processor import process_large_file
-process_large_file('large.pdf', chunk_size=10)
+# or else try:
+playwright install # this browser will help you render and all
 ```
 
 ---
