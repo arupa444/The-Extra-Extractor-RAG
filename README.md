@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**A Python-based document extraction and conversion toolkit for Retrieval-Augmented Generation (RAG) workflows**
+**A Python-based document extraction, conversion and execution toolkit for Retrieval-Augmented Generation (RAG) workflows**
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Backend-success.svg)](https://fastapi.tiangolo.com/)
@@ -206,6 +206,64 @@ Response:
         },.....
         ]
 }
+```
+
+##### 3. RAG Processing
+
+##### Endpoints name...
+
+- RAG_On_Single_Upload
+- RAG_On_Folder_Or_Multiple_file_Uploads
+- RAG_On_nonJS_nonSPA_Website
+- RAG_On_Multiple_nonJS_nonSPA_Website
+- RAG_On_JS_SPA_Website
+- RAG_On_Multiple_JS_SPA_Websites
+
+```http
+POST /api/v1/links-docs-websites-to-rag-embedding
+Content-Type: application/json
+
+Body:
+{
+    "file/files/webLink/webLinks": uploaded_file/uploaded_files/webLink/webLinks, # this depends on the endpoint you are using... and For JS build website... there is an another endpoint and for non JS based we have an different...
+    "query": "...", #a question for the rag itself.... 
+    "subDir": "..." # name of the dir
+}
+
+Response:
+{
+    "Top Result": "... (Score: ......)", # title of the chunk and the score
+    "Final Answer": "...", # the answer of your query
+    "markdown_content": "..." # the markdown content
+}
+# And it will also saves the data extracted from the web, docs and more... and also saved the embedding, chunks, propositions and more to that the faiss and an ID file to detect the ID.
+```
+
+##### 4. Main RAG endpoints (end-to-end website extraction).... 
+
+##### Endpoint name...
+
+- full_website_extraction
+- full_website_extraction_and_conversation
+- full_website_extraction_conversation_and_execution
+
+```http
+POST /api/v1/full_website_extraction
+Content-Type: application/json
+
+Body:
+{
+    "query": "...", # a question for the rag itself.... 
+    "webLink": webLink, # Web link that you want to scrap fully... like the sub links and all
+}
+
+Response:
+{
+    "Top Result": "... (Score: ......)", # title of the chunk and the score
+    "Final Answer": "...", # the answer of your query
+    "SavedLocation": "..." # The saved location in the name of the website
+}
+# And it will also saves the data extracted from the web, docs and more... and also saved the embedding, chunks, propositions and more to that the faiss and an ID file to detect the ID.
 ```
 
 ### Command-Line Usage
