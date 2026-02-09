@@ -11,3 +11,7 @@ uv.lock
 venv/
 .venv/
 .idea/
+# dir get generated while the process...
+rawDataDir/
+vectorStoreDB/
+storeCurlData/
